@@ -4,8 +4,6 @@ import statistics
 
 import tensorflow as tf
 
-from . import util
-
 class ActorCriticDirector:
     # Heavily based on
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
@@ -43,58 +41,34 @@ class ActorCriticDirector:
     def run_training_episode(self):
 
         with tf.GradientTape() as tape:
-            action_probs, values, rewards, episode_reward = self.run_episode()
-
-            returns = util.get_expected_return(rewards, self.gamma)
-
-            action_probs, values, returns = [tf.expand_dims(x, 1) for x in [action_probs, values, returns]] 
-
-            loss = self.model.compute_loss(action_probs, values, returns)
+            episode_reward = float(self.run_episode())
+            self.model.post_episode_train(tape, self.gamma)
         
-        grads = tape.gradient(loss, self.model.trainable_variables)
-        self.model.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
-
         return episode_reward
 
     def run_episode(self):
         state = self.env.get_new_starting_state()
         state_shape = state.shape
 
-        action_probs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
-        values = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
-        rewards = tf.TensorArray(dtype=tf.int32, size=0, dynamic_size=True)
+        self.model.new_episode()
+        episode_reward = 0.0
 
         for t in tf.range(self.env.max_steps()):
             # Convert state into a batched tensor (batch size = 1)
             state = tf.expand_dims(state, 0)
         
-            # Run the model and to get action probabilities and critic value
-            action_logits_t, value = self.model(state)
-        
-            # Sample next action from the action probability distribution
-            action = tf.random.categorical(action_logits_t, 1)[0, 0]
-            action_probs_t = tf.nn.softmax(action_logits_t)
-
-            # Store critic values
-            values = values.write(t, tf.squeeze(value))
-
-            # Store log probability of the action chosen
-            action_probs = action_probs.write(t, action_probs_t[0, action])
+            action = self.model(state)
         
             # Apply action to the environment to get next state and reward
             state, reward, done = self.env.tf_step(action)
             state.set_shape(state_shape)
-        
-            # Store reward
-            rewards = rewards.write(t, reward)
+
+            self.model.post_step(state, reward, done)
+
+            r = float(reward)
+            episode_reward = episode_reward + float(r)
 
             if tf.cast(done, tf.bool):
                 break
-
-        action_probs = action_probs.stack()
-        values = values.stack()
-        rewards = rewards.stack()
-
-        episode_reward = tf.math.reduce_sum(rewards)
         
-        return action_probs, values, rewards, episode_reward
+        return episode_reward

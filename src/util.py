@@ -7,11 +7,11 @@ eps = np.finfo(np.float32).eps.item()
 def get_expected_return(
     rewards: tf.Tensor, 
     gamma: float, 
+    n: int,
     standardize: bool = True) -> tf.Tensor:
   # Direct Copy:
   # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-  n = tf.shape(rewards)[0]
   returns = tf.TensorArray(dtype=tf.float32, size=n)
 
   # Start from the end of `rewards` and accumulate reward sums

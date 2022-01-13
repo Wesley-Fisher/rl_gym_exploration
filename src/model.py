@@ -1,8 +1,10 @@
+from re import I
 from typing import Tuple
 
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from . import util
 
 class SimpleActorCriticModel(tf.keras.Model):
     # Heavily based on:
@@ -17,12 +19,65 @@ class SimpleActorCriticModel(tf.keras.Model):
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
         self.huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+
+        # Values for Training
+        self.action_probs = None
+        self.values = None
+        self.rewards = None
+        self.ep_loss = None
+
+    def new_episode(self):
+        self.action_probs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        self.values = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        self.rewards = tf.TensorArray(dtype=tf.int32, size=0, dynamic_size=True)
+        self.ep_loss = None
+
+    @tf.function
+    def call_inner(self, state: tf.Tensor):
+        print("Inner Model Function (tf function)")
+        x = self.common(state)
+        action_logits = self.actor(x)
+        value = self.critic(x)
+        return action_logits, value
+
     
     def call(self, state: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
-        x = self.common(state)
-        return self.actor(x), self.critic(x)
+        # Prep for recording data
+        i = self.rewards.size()
 
-    def compute_loss(self,
+        # Calculations
+        action_logits, value = self.call_inner(state)
+
+        # Handle Action
+        action = tf.random.categorical(action_logits, 1)[0, 0] 
+        action_probs = tf.nn.softmax(action_logits)
+        self.action_probs = self.action_probs.write(i, action_probs[0, action])
+
+        # Handle Value
+        self.values = self.values.write(i, tf.squeeze(value))
+
+        return action
+
+    def post_step(self, state: tf.Tensor,
+                        reward: tf.Tensor,
+                        done: bool):
+        i = self.rewards.size()
+        self.rewards = self.rewards.write(i, reward)
+
+    def post_episode_train(self, tape, gamma):
+        action_probs = self.action_probs.stack()
+        values = self.values.stack()
+        rewards = self.rewards.stack()
+
+        returns = util.get_expected_return(rewards, gamma, self.rewards.size())
+
+        action_probs, values, returns = [tf.expand_dims(x, 1) for x in [action_probs, values, returns]] 
+        loss = self.compute_ActorCritic_loss(action_probs, values, returns)
+
+        grads = tape.gradient(loss, self.trainable_variables)
+        self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
+
+    def compute_ActorCritic_loss(self,
                      action_probs: tf.Tensor,
                      values: tf.Tensor,
                      returns: tf.Tensor) -> tf.Tensor:
