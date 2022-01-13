@@ -4,7 +4,7 @@ import statistics
 
 import tensorflow as tf
 
-class ActorCriticDirector:
+class Director:
     # Heavily based on
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 

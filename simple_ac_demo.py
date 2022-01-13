@@ -4,7 +4,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from src.environment import Environment
-from src.director import ActorCriticDirector
+from src.director import Director
 from src.model import GymExplorationModel
 from src import util
 
@@ -100,6 +100,5 @@ class SimpleActorCriticModel(GymExplorationModel):
 
 env = Environment('CartPole-v0')
 model = SimpleActorCriticModel(env)
-director = ActorCriticDirector(env, model)
-
+director = Director(env, model)
 director.train(1000)
