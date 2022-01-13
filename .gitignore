@@ -1,3 +1,8 @@
+# CUSTOM
+.vscode
+
+# BELOW is included from GitHub's default Python .gitignore
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
