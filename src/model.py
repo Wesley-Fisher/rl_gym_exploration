@@ -6,7 +6,30 @@ from tensorflow.keras import layers
 
 from . import util
 
-class SimpleActorCriticModel(tf.keras.Model):
+class GymExplorationModel(tf.keras.Model):
+    def __init__(self):
+        super().__init__()
+
+    def new_episode():
+        # Reset anything needed for a new episode
+        raise NotImplementedError
+    
+    def call(self, state: tf.Tensor):
+        # Implement logic to take an action
+        raise NotImplementedError
+
+    def post_step(self, state: tf.Tensor,
+                        reward: tf.Tensor,
+                        done: bool):
+        # If relevant, handle data from taking the action
+        return
+    
+    def post_episode_train(self, tape):
+        # If relevant do training
+        # Tensorflow tf.GradientTape available
+        return
+
+class SimpleActorCriticModel(GymExplorationModel):
     # Heavily based on:
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
@@ -19,6 +42,8 @@ class SimpleActorCriticModel(tf.keras.Model):
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
         self.huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+
+        self.gamma = 0.99
 
         # Values for Training
         self.action_probs = None
@@ -62,13 +87,13 @@ class SimpleActorCriticModel(tf.keras.Model):
         i = self.rewards.size()
         self.rewards = self.rewards.write(i, reward)
 
-    def post_episode_train(self, tape, gamma):
+    def post_episode_train(self, tape):
         action_probs = self.action_probs.stack()
         values = self.values.stack()
         rewards = self.rewards.stack()
 
         # Get returns
-        returns = util.get_expected_return(rewards, gamma, self.rewards.size())
+        returns = util.get_expected_return(rewards, self.gamma, self.rewards.size())
 
         # Reshape, and calculate loss for Actor-Critic
         action_probs, values, returns = [tf.expand_dims(x, 1) for x in [action_probs, values, returns]] 

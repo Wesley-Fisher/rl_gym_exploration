@@ -8,10 +8,9 @@ class ActorCriticDirector:
     # Heavily based on
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, model, gamma=0.99):
+    def __init__(self, env, model):
         self.env = env
         self.model = model
-        self.gamma = gamma
     
     def train(self, max_episodes):
         # Keep last episodes reward
@@ -42,7 +41,7 @@ class ActorCriticDirector:
 
         with tf.GradientTape() as tape:
             episode_reward = float(self.run_episode())
-            self.model.post_episode_train(tape, self.gamma)
+            self.model.post_episode_train(tape)
         
         return episode_reward
 
