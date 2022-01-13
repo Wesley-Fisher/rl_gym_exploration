@@ -3,6 +3,8 @@ from typing import Tuple
 import tensorflow as tf
 from tensorflow.keras import layers
 
+from simple_pid import PID
+
 from src.environment import Environment
 from src.director import Director
 from src.model import GymExplorationModel
@@ -98,7 +100,37 @@ class SimpleActorCriticModel(GymExplorationModel):
         return actor_loss + critic_loss
 
 
+class PIDModel(GymExplorationModel):
+    def __init__(self, i):
+        super().__init__()
+        self.PID = None
+        self.i = i
+
+    def new_episode(self):
+        self.pid = PID(10, 0, 2, setpoint=0)
+        self.pid.sample_time = 0.02
+    
+    def call(self, state: tf.Tensor):
+        state = tf.expand_dims(state, 0)
+  
+        c = self.pid(state[0,0,self.i])
+        act = 0
+        if c < 0:
+            act = 0
+        else:
+            act = 1
+
+        return act
+
+
+print("Actor-Critic Demo")
 env = Environment('CartPole-v0')
 model = SimpleActorCriticModel(env)
 director = Director(env, model)
 director.train(1000)
+
+print("PID Demo")
+env = Environment('CartPole-v0')
+model = PIDModel(2)
+director = Director(env, model)
+director.train(100)
