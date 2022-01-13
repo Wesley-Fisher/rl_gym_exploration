@@ -24,13 +24,11 @@ class SimpleActorCriticModel(tf.keras.Model):
         self.action_probs = None
         self.values = None
         self.rewards = None
-        self.ep_loss = None
 
     def new_episode(self):
         self.action_probs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         self.values = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         self.rewards = tf.TensorArray(dtype=tf.int32, size=0, dynamic_size=True)
-        self.ep_loss = None
 
     @tf.function
     def call_inner(self, state: tf.Tensor):
@@ -69,11 +67,14 @@ class SimpleActorCriticModel(tf.keras.Model):
         values = self.values.stack()
         rewards = self.rewards.stack()
 
+        # Get returns
         returns = util.get_expected_return(rewards, gamma, self.rewards.size())
 
+        # Reshape, and calculate loss for Actor-Critic
         action_probs, values, returns = [tf.expand_dims(x, 1) for x in [action_probs, values, returns]] 
         loss = self.compute_ActorCritic_loss(action_probs, values, returns)
 
+        # Update Model
         grads = tape.gradient(loss, self.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
 
