@@ -4,8 +4,9 @@ import cv2
 import imageio
 
 class Animator:
-    def __init__(self, env, episode_modulo=10):
+    def __init__(self, prefix, env, model, suffix, episode_modulo=10):
         self.env = env
+        self.model = model
 
         self.episode_modulo = episode_modulo
         self.episode_count = -1
@@ -15,7 +16,7 @@ class Animator:
         self.tau = self.period + 1.0
 
         self.images = []
-        self.name = "Animation"
+        self.name = f"{prefix}_{env.get_name()}_{model.get_name()}_{suffix}"
     
     def start_new_episode(self):
         self.episode_count = self.episode_count + 1

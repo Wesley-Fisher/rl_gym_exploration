@@ -33,6 +33,9 @@ class SimpleActorCriticModel(GymExplorationModel):
         self.values = None
         self.rewards = None
 
+    def get_name(self):
+        return "SimpleAC"
+
     def new_episode(self):
         self.action_probs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         self.values = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
@@ -106,6 +109,9 @@ class PIDModel(GymExplorationModel):
         super().__init__()
         self.PID = None
         self.i = i
+    
+    def get_name(self):
+        return "PID"
 
     def new_episode(self):
         self.pid = PID(10, 0, 2, setpoint=0)
@@ -127,13 +133,13 @@ class PIDModel(GymExplorationModel):
 print("Actor-Critic Demo")
 env = Environment('CartPole-v0')
 model = SimpleActorCriticModel(env)
-animator = Animator(env)
+animator = Animator('Demo', env, model, '1000')
 director = Director(env, model, animator)
 director.train(1000)
 
 print("PID Demo")
 env = Environment('CartPole-v0')
 model = PIDModel(2)
-animator = Animator(env)
+animator = Animator('Demo', env, model, '100')
 director = Director(env, model, animator)
 director.train(100)

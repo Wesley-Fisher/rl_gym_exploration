@@ -22,6 +22,7 @@ class Environment:
 
         self.env = gym.make(name)
         self.env.seed(seed)
+        self.name = name
 
         self.min_episodes_val = min_episodes[name]
         self.threshold_val = thresholds[name]
@@ -52,3 +53,6 @@ class Environment:
     
     def dt(self):
         return self.dt_val
+    
+    def get_name(self):
+        return self.name

@@ -4,6 +4,9 @@ class GymExplorationModel(tf.keras.Model):
     def __init__(self):
         super().__init__()
 
+    def get_name(self):
+        raise NotImplementedError
+
     def new_episode(self):
         # Reset anything needed for a new episode
         raise NotImplementedError
