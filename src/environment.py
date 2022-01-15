@@ -5,6 +5,7 @@ import tensorflow as tf
 
 import gym
 
+# Can check some outside info: https://bytepawn.com/solving-openai-gym-classic-control-problems-with-pytorch.html
 envs = ['CartPole-v0', 'MountainCar-v0', 'Acrobot-v1', 'Pendulum-v1', 'MountainCarContinuous-v0']
 min_episodes = {'CartPole-v0': 100, 'MountainCar-v0': 100, 'Acrobot-v1': 100, 'Pendulum-v1': 100, 'MountainCarContinuous-v0': 109}
 thresholds = {'CartPole-v0': 195, 'MountainCar-v0': -150, 'Acrobot-v1': -150, 'Pendulum-v1': -150, 'MountainCarContinuous-v0': 90}
