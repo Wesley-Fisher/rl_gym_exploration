@@ -54,7 +54,7 @@ class Animator:
         frame = cv2.putText(frame, text, (10,10), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (0, 0, 0), 1)
 
         cv2.imshow(self.name, frame)
-        cv2.waitKey(int(self.dt*1000))
+        cv2.waitKey(min(int(self.dt*1000), 33))
 
         frame = np.flip(frame, 2)
         frame = frame.astype(np.uint8)
