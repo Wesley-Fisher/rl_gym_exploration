@@ -147,14 +147,13 @@ class PIDModel(GymExplorationModel):
             act = 1
         return act
 
-'''
+
 print("Actor-Critic Demo")
 env = Environment('MountainCar-v0')
 model = SimpleActorCriticModel(env)
 animator = Animator('Demo', env, model, '1000')
 director = Director(env, model, animator)
 director.train(1000)
-'''
 
 
 print("PID Demo")
