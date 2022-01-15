@@ -106,13 +106,13 @@ class SimpleActorCriticModel(GymExplorationModel):
 
 
 class PIDModel(GymExplorationModel):
-    def __init__(self, i, p, integ, d, goal, eps=-1, continuous=False):
+    def __init__(self, idx=0, kp=0, ki=0, kd=0, goal=0, eps=-1, continuous=False):
         super().__init__()
         self.PID = None
-        self.i = i
-        self.p = p
-        self.integ = integ
-        self.d = d
+        self.idx = idx
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
         self.goal = goal
         self.eps = eps
         self.continuous = continuous
@@ -121,13 +121,13 @@ class PIDModel(GymExplorationModel):
         return "PID"
 
     def new_episode(self):
-        self.pid = PID(self.p, self.integ, self.d, setpoint=0)
+        self.pid = PID(self.kp, self.ki, self.kd, setpoint=0)
         self.pid.sample_time = 0.02
     
     def call(self, state: tf.Tensor):
         state = tf.expand_dims(state, 0)
   
-        c = self.pid(self.goal - state[0,0,self.i])
+        c = self.pid(self.goal - state[0,0,self.idx])
         if self.continuous:
             return np.array([c])
         act = 0
@@ -159,7 +159,7 @@ director.train(1000)
 
 print("PID Demo")
 env = Environment('Acrobot-v1')
-model = PIDModel(0, 0.0001, 0, 10, 0.5, eps=0.001, continuous=False)
+model = PIDModel(idx=0, kp=0.0001, ki=0, kd=10, goal=0.5, eps=0.001, continuous=False)
 animator = Animator('Demo', env, model, '100')
 director = Director(env, model, animator)
 director.train(100)
