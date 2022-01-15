@@ -1,4 +1,5 @@
 from typing import Tuple
+import numpy as np
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -105,7 +106,7 @@ class SimpleActorCriticModel(GymExplorationModel):
 
 
 class PIDModel(GymExplorationModel):
-    def __init__(self, i, p, integ, d, goal, eps=-1):
+    def __init__(self, i, p, integ, d, goal, eps=-1, continuous=False):
         super().__init__()
         self.PID = None
         self.i = i
@@ -114,6 +115,7 @@ class PIDModel(GymExplorationModel):
         self.d = d
         self.goal = goal
         self.eps = eps
+        self.continuous = continuous
     
     def get_name(self):
         return "PID"
@@ -126,6 +128,8 @@ class PIDModel(GymExplorationModel):
         state = tf.expand_dims(state, 0)
   
         c = self.pid(self.goal - state[0,0,self.i])
+        if self.continuous:
+            return np.array([c])
         act = 0
 
         if self.eps < 0:
@@ -154,8 +158,8 @@ director.train(1000)
 
 
 print("PID Demo")
-env = Environment('MountainCar-v0')
-model = PIDModel(0, 0.0001, 0, 10, 0.5, 0.0001)
+env = Environment('Acrobot-v1')
+model = PIDModel(0, 0.0001, 0, 10, 0.5, eps=0.001, continuous=False)
 animator = Animator('Demo', env, model, '100')
 director = Director(env, model, animator)
 director.train(100)
