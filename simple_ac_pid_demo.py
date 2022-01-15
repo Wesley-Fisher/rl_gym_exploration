@@ -105,41 +105,57 @@ class SimpleActorCriticModel(GymExplorationModel):
 
 
 class PIDModel(GymExplorationModel):
-    def __init__(self, i):
+    def __init__(self, i, p, integ, d, goal, eps=-1):
         super().__init__()
         self.PID = None
         self.i = i
+        self.p = p
+        self.integ = integ
+        self.d = d
+        self.goal = goal
+        self.eps = eps
     
     def get_name(self):
         return "PID"
 
     def new_episode(self):
-        self.pid = PID(10, 0, 2, setpoint=0)
+        self.pid = PID(self.p, self.integ, self.d, setpoint=0)
         self.pid.sample_time = 0.02
     
     def call(self, state: tf.Tensor):
         state = tf.expand_dims(state, 0)
   
-        c = self.pid(state[0,0,self.i])
+        c = self.pid(self.goal - state[0,0,self.i])
         act = 0
-        if c < 0:
+
+        if self.eps < 0:
+            if c < 0:
+                act = 0
+            else:
+                act = 1
+            return act
+        
+        if c < -self.eps:
             act = 0
+        elif c > self.eps:
+            act = 2
         else:
             act = 1
-
         return act
 
+'''
 print("Actor-Critic Demo")
 env = Environment('MountainCar-v0')
 model = SimpleActorCriticModel(env)
 animator = Animator('Demo', env, model, '1000')
 director = Director(env, model, animator)
 director.train(1000)
+'''
 
 
 print("PID Demo")
 env = Environment('MountainCar-v0')
-model = PIDModel(2)
+model = PIDModel(0, 0.0001, 0, 10, 0.5, 0.0001)
 animator = Animator('Demo', env, model, '100')
 director = Director(env, model, animator)
 director.train(100)
