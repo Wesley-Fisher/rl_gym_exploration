@@ -1,5 +1,6 @@
 # CUSTOM
 .vscode
+*.gif
 
 # BELOW is included from GitHub's default Python .gitignore
 
