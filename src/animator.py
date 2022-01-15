@@ -29,7 +29,7 @@ class Animator:
         if self.episode_modulo < 0:
             return
         if self.episode_modulo != 0 and \
-           self.episode_count % self.episode_modulo == 0:
+           self.episode_count % self.episode_modulo != 0:
            return
         
         if self.tau > self.period:
