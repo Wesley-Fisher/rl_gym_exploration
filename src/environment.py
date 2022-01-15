@@ -5,11 +5,11 @@ import tensorflow as tf
 
 import gym
 
-envs = ['CartPole-v0', 'MountainCar-v0']
-min_episodes = {'CartPole-v0': 100, 'MountainCar-v0': 100}
-thresholds = {'CartPole-v0': 195, 'MountainCar-v0': -150}
-max_steps = {'CartPole-v0': 200, 'MountainCar-v0': 200}
-dts = {'CartPole-v0': 0.02, 'MountainCar-v0': 1}
+envs = ['CartPole-v0', 'MountainCar-v0', 'Acrobot-v1']
+min_episodes = {'CartPole-v0': 100, 'MountainCar-v0': 100, 'Acrobot-v1': 100}
+thresholds = {'CartPole-v0': 195, 'MountainCar-v0': -150, 'Acrobot-v1': -150}
+max_steps = {'CartPole-v0': 200, 'MountainCar-v0': 200, 'Acrobot-v1': 200}
+dts = {'CartPole-v0': 0.02, 'MountainCar-v0': 1, 'Acrobot-v1': 0.2}
 
 class Environment:
     # Heavily based on:
