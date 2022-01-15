@@ -9,6 +9,7 @@ envs = ['CartPole-v0']
 min_episodes = {'CartPole-v0': 100}
 thresholds = {'CartPole-v0': 195}
 max_steps = {'CartPole-v0': 200}
+dts = {'CartPole-v0': 0.02}
 
 class Environment:
     # Heavily based on:
@@ -25,6 +26,7 @@ class Environment:
         self.min_episodes_val = min_episodes[name]
         self.threshold_val = thresholds[name]
         self.max_steps_val = max_steps[name]
+        self.dt_val = dts[name]
 
     def step(self, action:np.ndarray, getInfo=False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         state, reward, done, info = self.env.step(action)
@@ -47,3 +49,6 @@ class Environment:
     
     def max_steps(self):
         return self.max_steps_val
+    
+    def dt(self):
+        return self.dt_val
