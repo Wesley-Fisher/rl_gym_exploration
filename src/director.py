@@ -37,13 +37,17 @@ class Director:
             print(f'\nSolved at episode {i}: average reward: {running_reward:.2f}!')
         else:
             print("Not Solved!")
+        
+        self.animator.finish()
     
     def run_training_episode(self):
+        self.animator.start_new_episode()
 
         with tf.GradientTape() as tape:
             episode_reward = float(self.run_episode())
             self.model.post_episode_train(tape)
         
+        self.animator.end_episode()
         return episode_reward
 
     def run_episode(self):
@@ -58,7 +62,9 @@ class Director:
             state = tf.expand_dims(state, 0)
         
             action = self.model(state)
-        
+
+            self.animator.step(state, action)
+
             # Apply action to the environment to get next state and reward
             state, reward, done = self.env.tf_step(action)
             state.set_shape(state_shape)
@@ -71,4 +77,7 @@ class Director:
             if tf.cast(done, tf.bool):
                 break
         
+        # Capture final frame
+        self.animator.step(state, action)
+
         return episode_reward
