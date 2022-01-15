@@ -4,6 +4,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 
 from simple_pid import PID
+from src.animator import Animator
 
 from src.environment import Environment
 from src.director import Director
@@ -126,11 +127,13 @@ class PIDModel(GymExplorationModel):
 print("Actor-Critic Demo")
 env = Environment('CartPole-v0')
 model = SimpleActorCriticModel(env)
-director = Director(env, model)
+animator = Animator(env)
+director = Director(env, model, animator)
 director.train(1000)
 
 print("PID Demo")
 env = Environment('CartPole-v0')
 model = PIDModel(2)
-director = Director(env, model)
+animator = Animator(env)
+director = Director(env, model, animator)
 director.train(100)

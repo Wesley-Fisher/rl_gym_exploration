@@ -8,9 +8,10 @@ class Director:
     # Heavily based on
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, model):
+    def __init__(self, env, model, animator):
         self.env = env
         self.model = model
+        self.animator = animator
     
     def train(self, max_episodes):
         # Keep last episodes reward
