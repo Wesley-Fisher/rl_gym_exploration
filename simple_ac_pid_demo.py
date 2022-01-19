@@ -127,7 +127,7 @@ class PIDModel(GymExplorationModel):
     def call(self, state: tf.Tensor):
         state = tf.expand_dims(state, 0)
   
-        c = self.pid(self.goal - state[0,0,self.idx])
+        c = self.pid(-(self.goal - state[0,0,self.idx]))
         if self.continuous:
             return np.array([c])
         act = 0
@@ -149,16 +149,51 @@ class PIDModel(GymExplorationModel):
 
 
 print("Actor-Critic Demo")
+env = Environment('CartPole-v0')
+model = SimpleActorCriticModel(env)
+animator = Animator('Demo', env, model, '100', 20)
+director = Director(env, model, animator)
+director.train(100)
+
+
+print("PID Demo")
+env = Environment('CartPole-v0')
+model = PIDModel(idx=2, kp=-1.0, ki=0, kd=0, goal=0, eps=-1, continuous=False)
+animator = Animator('Demo', env, model, '5', 1, show_live=True)
+director = Director(env, model, animator)
+director.train(5)
+
+
+
+print("Actor-Critic Demo")
 env = Environment('MountainCar-v0')
 model = SimpleActorCriticModel(env)
-animator = Animator('Demo', env, model, '1000')
+animator = Animator('Demo', env, model, '100', 20)
 director = Director(env, model, animator)
-director.train(1000)
+director.train(100)
+
+
+print("PID Demo")
+env = Environment('MountainCar-v0')
+model = PIDModel(idx=0, kp=1.0, ki=1, kd=0, goal=0.5, eps=0.001, continuous=False)
+animator = Animator('Demo', env, model, '5', 1)
+director = Director(env, model, animator)
+director.train(5)
+
+
+
+print("Actor-Critic Demo")
+env = Environment('Acrobot-v1')
+model = SimpleActorCriticModel(env)
+animator = Animator('Demo', env, model, '100', 20)
+director = Director(env, model, animator)
+director.train(100)
+
 
 
 print("PID Demo")
 env = Environment('Acrobot-v1')
-model = PIDModel(idx=0, kp=0.0001, ki=0, kd=10, goal=0.5, eps=0.001, continuous=False)
-animator = Animator('Demo', env, model, '100')
+model = PIDModel(idx=0, kp=0, ki=0, kd=1, goal=-1, eps=0.0001, continuous=False)
+animator = Animator('Demo', env, model, '5', 1)
 director = Director(env, model, animator)
-director.train(100)
+director.train(5)

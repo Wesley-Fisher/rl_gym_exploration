@@ -41,7 +41,10 @@ class Environment:
         return tf.constant(self.env.reset(), dtype=tf.float32)
     
     def get_num_actions(self):
-        return self.env.action_space.n
+        try:
+            return self.env.action_space.n
+        except AttributeError as e:
+            return self.env.action_space._shape[0]
 
     def min_episodes(self):
         return self.min_episodes_val
