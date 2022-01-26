@@ -1,5 +1,6 @@
 from typing import Tuple
 import numpy as np
+import random
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -105,6 +106,137 @@ class SimpleDiscreteActorCriticModel(GymExplorationModel):
         return actor_loss + critic_loss
 
 
+class SimpleContinuousActorCriticModel(GymExplorationModel):
+    # Heavily based on:
+    # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
+    # https://towardsdatascience.com/a-minimal-working-example-for-continuous-policy-gradients-in-tensorflow-2-0-d3413ec38c6b
+
+    def __init__(self, env, scale, alpha, eps, critic_scale):
+        super().__init__()
+        self.env = env
+        self.scale = scale
+        self.alpha = alpha
+        self.eps = eps
+        self.critic_scale = critic_scale
+
+        self.common1 = layers.Dense(32, activation="relu")
+        self.common2 = layers.Dense(32, activation="relu")
+        self.actor = layers.Dense(4, activation="relu")
+        self.actor_mu = layers.Dense(1, activation='tanh')
+        self.actor_scale = layers.Multiply()
+        self.actor_sig = layers.Dense(1, activation='sigmoid')
+        self.critic = layers.Dense(1)
+
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.alpha)
+        self.huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
+
+        self.gamma = 0.99
+
+        # Values for Training
+        self.states = None
+        self.actions = None
+        self.values = None
+        self.rewards = None
+
+    def get_name(self):
+        return "SimpleACContinuous"
+
+    def new_episode(self):
+        self.actions = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        self.values = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+        self.rewards = tf.TensorArray(dtype=tf.int32, size=0, dynamic_size=True)
+        self.states = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
+
+    @tf.function
+    def call_inner(self, state: tf.Tensor):
+        print("Inner Model Function (tf function)")
+        x = self.common1(state)
+        x = self.common2(x)
+        act = self.actor(x)
+        mu = self.actor_mu(act) * self.scale
+        sigma = self.actor_sig(act)
+        value = self.critic(x) * self.critic_scale
+        return mu, sigma, value
+
+    
+    def call(self, state: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+        # Prep for recording data
+        i = self.rewards.size()
+
+        # Calculations
+        action, sig, value = self.call_inner(state)
+        action = action + random.gauss(0.0, self.eps)
+
+        # Handle Action
+        self.actions = self.actions.write(i, action)
+
+        # Handle Value
+        self.values = self.values.write(i, tf.squeeze(value))
+
+        # Store State
+        self.states = self.states.write(i, tf.squeeze(state))
+
+        return action
+
+    def post_step(self, state: tf.Tensor,
+                        reward: tf.Tensor,
+                        done: bool):
+        i = self.rewards.size()
+        self.rewards = self.rewards.write(i, reward)
+
+    def post_episode_train(self, tape):
+        actions = self.actions.stack()
+        values = self.values.stack()
+        rewards = self.rewards.stack()
+        states = self.states.stack()
+
+        # Get returns
+        returns = util.get_expected_return(rewards, self.gamma, self.rewards.size())
+
+        # Get Action PDF values
+        action_pdfs = self.calculate_action_pdfs(states, actions, self.states.size())
+
+        # Reshape, and calculate loss for Actor-Critic
+        action_pdfs, values, returns = [tf.expand_dims(x, 1) for x in [action_pdfs, values, returns]] 
+        loss = self.compute_ActorCritic_loss(action_pdfs, values, returns)
+
+        # Update Model
+        grads = tape.gradient(loss, self.trainable_variables)
+        self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
+
+    def calculate_action_pdfs(self, states, actions, n):
+        pdfs = tf.TensorArray(dtype=tf.float32, size=n)
+
+        for i in tf.range(n):
+            state = states[i]
+            state = tf.reshape(state, [1, self.env.env.observation_space.shape[0]])
+            act = actions[i]
+
+            # Run network
+            mu, sigma, value = self.call_inner(state)
+
+            # Gaussian PDF
+            expo_root = (act - mu) / sigma
+            den = sigma * tf.sqrt(2*np.pi)
+            pdf = tf.exp(-0.5 * expo_root ** 2) / den
+            
+            pdfs = pdfs.write(i, pdf)
+        pdfs = pdfs.stack()
+        return pdfs
+
+    def compute_ActorCritic_loss(self,
+                     action_pdfs: tf.Tensor,
+                     values: tf.Tensor,
+                     returns: tf.Tensor) -> tf.Tensor:
+        advantage = returns - values
+
+        action_log_pdfs = tf.math.log(action_pdfs + 1e-5)
+        actor_loss = -tf.math.reduce_sum(action_log_pdfs * advantage)
+
+        critic_loss = self.huber_loss(values, returns)
+
+        return actor_loss + critic_loss
+
 class PIDModel(GymExplorationModel):
     def __init__(self, idx=0, kp=0, ki=0, kd=0, goal=0, eps=-1, continuous=False):
         super().__init__()
@@ -197,3 +329,11 @@ model = PIDModel(idx=0, kp=0, ki=0, kd=1, goal=-1, eps=0.0001, continuous=False)
 animator = Animator('Demo', env, model, '5', 1)
 director = Director(env, model, animator)
 director.train(5)
+
+
+print("Actor-Critic Demo")
+env = Environment('Pendulum-v1')
+model = SimpleContinuousActorCriticModel(env, 2.0, 0.0001, 0.05, 1000)
+animator = Animator('Demo', env, model, '100', 20)
+director = Director(env, model, animator)
+director.train(300)

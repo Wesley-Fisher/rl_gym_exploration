@@ -18,7 +18,7 @@ def get_expected_return(
   # into the `returns` array
   rewards = tf.cast(rewards[::-1], dtype=tf.float32)
   discounted_sum = tf.constant(0.0)
-  discounted_sum_shape = discounted_sum.shape
+  discounted_sum_shape = (1,)
   for i in tf.range(n):
     reward = rewards[i]
     discounted_sum = reward + gamma * discounted_sum

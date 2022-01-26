@@ -62,12 +62,12 @@ class Director:
             state = tf.expand_dims(state, 0)
         
             action = self.model(state)
-
             self.animator.step(state, action)
 
             # Apply action to the environment to get next state and reward
             state, reward, done = self.env.tf_step(action)
-            state.set_shape(state_shape)
+            state = tf.reshape(state, state_shape)
+            #state.set_shape(state_shape)
 
             self.model.post_step(state, reward, done)
 
