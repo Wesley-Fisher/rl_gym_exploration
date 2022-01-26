@@ -19,10 +19,12 @@ def get_expected_return(
   rewards = tf.cast(rewards[::-1], dtype=tf.float32)
   discounted_sum = tf.constant(0.0)
   discounted_sum_shape = (1,)
+  discounted_sum = tf.reshape(discounted_sum, discounted_sum_shape)
   for i in tf.range(n):
     reward = rewards[i]
     discounted_sum = reward + gamma * discounted_sum
     discounted_sum.set_shape(discounted_sum_shape)
+    discounted_sum = tf.reshape(discounted_sum, discounted_sum_shape)
     returns = returns.write(i, discounted_sum)
   returns = returns.stack()[::-1]
 

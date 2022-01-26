@@ -76,6 +76,8 @@ class SimpleDiscreteActorCriticModel(GymExplorationModel):
         self.rewards = self.rewards.write(i, reward)
 
     def post_episode_train(self, tape):
+        if self.action_probs.size() == 0:
+            return
         action_probs = self.action_probs.stack()
         values = self.values.stack()
         rewards = self.rewards.stack()
@@ -185,6 +187,8 @@ class SimpleContinuousActorCriticModel(GymExplorationModel):
         self.rewards = self.rewards.write(i, reward)
 
     def post_episode_train(self, tape):
+        if self.actions.size() == 0:
+            return
         actions = self.actions.stack()
         values = self.values.stack()
         rewards = self.rewards.stack()
@@ -329,6 +333,7 @@ model = PIDModel(idx=0, kp=0, ki=0, kd=1, goal=-1, eps=0.0001, continuous=False)
 animator = Animator('Demo', env, model, '5', 1)
 director = Director(env, model, animator)
 director.train(5)
+
 
 
 print("Actor-Critic Demo")
