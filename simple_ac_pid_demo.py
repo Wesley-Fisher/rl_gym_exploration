@@ -13,7 +13,7 @@ from src.model import GymExplorationModel
 from src import util
 
 
-class SimpleActorCriticModel(GymExplorationModel):
+class SimpleDiscreteActorCriticModel(GymExplorationModel):
     # Heavily based on:
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
@@ -35,7 +35,7 @@ class SimpleActorCriticModel(GymExplorationModel):
         self.rewards = None
 
     def get_name(self):
-        return "SimpleAC"
+        return "SimpleACDiscrete"
 
     def new_episode(self):
         self.action_probs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
@@ -150,7 +150,7 @@ class PIDModel(GymExplorationModel):
 
 print("Actor-Critic Demo")
 env = Environment('CartPole-v0')
-model = SimpleActorCriticModel(env)
+model = SimpleDiscreteActorCriticModel(env)
 animator = Animator('Demo', env, model, '100', 20)
 director = Director(env, model, animator)
 director.train(100)
@@ -167,7 +167,7 @@ director.train(5)
 
 print("Actor-Critic Demo")
 env = Environment('MountainCar-v0')
-model = SimpleActorCriticModel(env)
+model = SimpleDiscreteActorCriticModel(env)
 animator = Animator('Demo', env, model, '100', 20)
 director = Director(env, model, animator)
 director.train(100)
@@ -184,7 +184,7 @@ director.train(5)
 
 print("Actor-Critic Demo")
 env = Environment('Acrobot-v1')
-model = SimpleActorCriticModel(env)
+model = SimpleDiscreteActorCriticModel(env)
 animator = Animator('Demo', env, model, '100', 20)
 director = Director(env, model, animator)
 director.train(100)
