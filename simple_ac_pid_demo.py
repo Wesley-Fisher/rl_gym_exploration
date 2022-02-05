@@ -189,10 +189,10 @@ class PIDModel(GymExplorationModel):
 
 print("CartPole-v0 Actor-Critic Demo")
 env = Environment('CartPole-v0')
-model = SimpleActorCriticModel(env)
+model = SimpleActorCriticModel(env, alpha=0.001, common=[64,64])
 animator = Animator('Demo', env, model, '100', 20)
 director = Director(env, model, animator)
-director.train(100)
+director.train(1000)
 
 
 print("MountainCar-v0 Actor-Critic Demo")
