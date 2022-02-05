@@ -17,7 +17,7 @@ class SimpleActorCriticModel(GymExplorationModel):
     # Heavily based on:
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, alpha=0.01, common=[128], actors=[], critics=0, discretization=0, scale=0):
+    def __init__(self, env, alpha=0.01, common=[128], actors=[], critics=[], discretization=0, scale=0):
         super().__init__()
 
         self.common = []
