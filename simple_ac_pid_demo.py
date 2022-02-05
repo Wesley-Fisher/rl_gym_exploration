@@ -166,7 +166,7 @@ class PIDModel(GymExplorationModel):
         return act
 
 
-print("Actor-Critic Demo")
+print("CartPole-v0 Actor-Critic Demo")
 env = Environment('CartPole-v0')
 model = SimpleActorCriticModel(env)
 animator = Animator('Demo', env, model, '100', 20)
@@ -174,7 +174,7 @@ director = Director(env, model, animator)
 director.train(100)
 
 
-print("PID Demo")
+print("CartPole-v0 PID Demo")
 env = Environment('CartPole-v0')
 model = PIDModel(idx=2, kp=-1.0, ki=0, kd=0, goal=0, eps=-1, continuous=False)
 animator = Animator('Demo', env, model, '5', 1, show_live=True)
@@ -183,7 +183,8 @@ director.train(5)
 
 
 
-print("Actor-Critic Demo")
+
+print("MountainCar-v0 Actor-Critic Demo")
 env = Environment('MountainCar-v0')
 model = SimpleActorCriticModel(env)
 animator = Animator('Demo', env, model, '100', 20)
@@ -191,7 +192,7 @@ director = Director(env, model, animator)
 director.train(100)
 
 
-print("PID Demo")
+print("MountainCar-v0 PID Demo")
 env = Environment('MountainCar-v0')
 model = PIDModel(idx=0, kp=1.0, ki=1, kd=0, goal=0.5, eps=0.001, continuous=False)
 animator = Animator('Demo', env, model, '5', 1)
@@ -200,7 +201,8 @@ director.train(5)
 
 
 
-print("Actor-Critic Demo")
+
+print("Acrobot-v1 Actor-Critic Demo")
 env = Environment('Acrobot-v1')
 model = SimpleActorCriticModel(env)
 animator = Animator('Demo', env, model, '100', 20)
@@ -208,10 +210,45 @@ director = Director(env, model, animator)
 director.train(100)
 
 
-
 print("PID Demo")
 env = Environment('Acrobot-v1')
 model = PIDModel(idx=0, kp=0, ki=0, kd=1, goal=-1, eps=0.0001, continuous=False)
+animator = Animator('Demo', env, model, '5', 1)
+director = Director(env, model, animator)
+director.train(5)
+
+
+
+
+print("Pendulum-v1 Actor-Critic Demo")
+env = Environment('Pendulum-v1')
+model = SimpleActorCriticModel(env, discretization=5, scale=2)
+animator = Animator('Demo', env, model, '100', 20)
+director = Director(env, model, animator)
+director.train(100)
+
+
+print("Pendulum-v1 PID Demo")
+env = Environment('Pendulum-v1')
+model = PIDModel(idx=0, kp=0, ki=0, kd=1, goal=-1, eps=0.0001, continuous=True)
+animator = Animator('Demo', env, model, '5', 1)
+director = Director(env, model, animator)
+director.train(5)
+
+
+
+
+print("MountainCarContinuous-v0 Actor-Critic Demo")
+env = Environment('MountainCarContinuous-v0')
+model = SimpleActorCriticModel(env, discretization=5, scale=1)
+animator = Animator('Demo', env, model, '100', 20)
+director = Director(env, model, animator)
+director.train(100)
+
+
+print("MountainCarContinuous-v0 PID Demo")
+env = Environment('MountainCarContinuous-v0')
+model = PIDModel(idx=0, kp=0, ki=0, kd=1, goal=-1, eps=0.0001, continuous=True)
 animator = Animator('Demo', env, model, '5', 1)
 director = Director(env, model, animator)
 director.train(5)
