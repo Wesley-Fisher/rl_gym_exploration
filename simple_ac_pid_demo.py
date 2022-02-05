@@ -17,10 +17,12 @@ class SimpleActorCriticModel(GymExplorationModel):
     # Heavily based on:
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, alpha=0.01, discretization=0, scale=0):
+    def __init__(self, env, alpha=0.01, common=[128], discretization=0, scale=0):
         super().__init__()
 
-        self.common = layers.Dense(128, activation="relu")
+        self.common = []
+        for c in common:
+            self.common.append(layers.Dense(c, activation="relu"))
         self.critic = layers.Dense(1)
 
         self.discretization = discretization
@@ -53,7 +55,9 @@ class SimpleActorCriticModel(GymExplorationModel):
     @tf.function
     def call_inner(self, state: tf.Tensor):
         print("Inner Model Function (tf function)")
-        x = self.common(state)
+        x = state
+        for common_layer in self.common:
+            x = common_layer(x)
         action_logits = self.actor(x)
         value = self.critic(x)
         return action_logits, value
