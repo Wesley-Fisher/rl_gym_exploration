@@ -200,11 +200,12 @@ director.train(1000)
 
 print("MountainCar-v0 Actor-Critic Demo")
 env = Environment('MountainCar-v0')
-model = SimpleActorCriticModel(env)
+montaincar_reward = lambda state: (tf.math.abs(state[1]*14)**1) * 1.5 + state[0]
+scale_return = lambda returns: returns / 200.0
+model = SimpleActorCriticModel(env, alpha=0.0001, common=[256,128, 32], critics=[16,4])
 animator = Animator('Demo', env, model, '100', 20)
-director = Director(env, model, animator)
-director.train(100)
-
+director = Director(env, model, animator, custom_reward=montaincar_reward, custom_scale_return=scale_return)
+director.train(1000)
 
 print("Acrobot-v1 Actor-Critic Demo")
 env = Environment('Acrobot-v1')
