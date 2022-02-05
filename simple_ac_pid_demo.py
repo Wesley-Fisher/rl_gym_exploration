@@ -113,13 +113,14 @@ class SimpleActorCriticModel(GymExplorationModel):
         i = self.rewards.size()
         self.rewards = self.rewards.write(i, reward)
 
-    def post_episode_train(self, tape):
+    def post_episode_train(self, tape, scale_return=lambda returns: returns):
         action_probs = self.action_probs.stack()
         values = self.values.stack()
         rewards = self.rewards.stack()
 
         # Get returns
-        returns = util.get_expected_return(rewards, self.gamma, self.rewards.size())
+        returns = util.get_expected_return(rewards, self.gamma, self.rewards.size(), False)
+        returns = scale_return(returns)
 
         # Reshape, and calculate loss for Actor-Critic
         action_probs, values, returns = [tf.expand_dims(x, 1) for x in [action_probs, values, returns]] 

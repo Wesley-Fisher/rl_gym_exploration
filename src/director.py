@@ -12,7 +12,7 @@ class Director:
     # Heavily based on
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, model, animator, custom_reward=lambda s: 0.0):
+    def __init__(self, env, model, animator, custom_reward=lambda s: 0.0, custom_scale_return=lambda returns: returns):
         self.env = env
         self.model = model
         self.animator = animator
@@ -64,7 +64,7 @@ class Director:
 
         with tf.GradientTape() as tape:
             episode_reward, custom_reward = self.run_episode()
-            self.model.post_episode_train(tape)
+            self.model.post_episode_train(tape, self.custom_scale_return)
         
         self.animator.end_episode()
         return float(episode_reward), float(custom_reward)
