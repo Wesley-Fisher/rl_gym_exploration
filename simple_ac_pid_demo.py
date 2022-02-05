@@ -17,12 +17,20 @@ class SimpleActorCriticModel(GymExplorationModel):
     # Heavily based on:
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env):
+    def __init__(self, env, discretization=0, scale=0):
         super().__init__()
 
         self.common = layers.Dense(128, activation="relu")
-        self.actor = layers.Dense(env.get_num_actions())
         self.critic = layers.Dense(1)
+
+        self.discretization = discretization
+        self.scale = scale
+        if self.discretization <= 0:
+            self.act_N = env.get_num_actions()
+        else:
+            self.act_N = 2 * self.discretization + 1
+        
+        self.actor = layers.Dense(self.act_N)
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
         self.huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
@@ -66,6 +74,16 @@ class SimpleActorCriticModel(GymExplorationModel):
         # Handle Value
         self.values = self.values.write(i, tf.squeeze(value))
 
+        # Continuous / Discretized Action
+        if self.discretization > 0:
+            action = [self.discretize_action(action)]
+
+        return action
+
+    def discretize_action(self, action):
+        action = action - self.discretization
+        action = action / self.discretization
+        action = action * self.scale
         return action
 
     def post_step(self, state: tf.Tensor,
