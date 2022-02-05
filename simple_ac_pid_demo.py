@@ -40,7 +40,7 @@ class SimpleActorCriticModel(GymExplorationModel):
         
         self.critic_layers = []
         for c in critics:
-            self.critic_layers.append(layers.Dense(a, activation="relu"))
+            self.critic_layers.append(layers.Dense(c, activation="relu"))
         self.critic = layers.Dense(1)
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=alpha)
@@ -59,7 +59,7 @@ class SimpleActorCriticModel(GymExplorationModel):
     def new_episode(self):
         self.action_probs = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
         self.values = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
-        self.rewards = tf.TensorArray(dtype=tf.int32, size=0, dynamic_size=True)
+        self.rewards = tf.TensorArray(dtype=tf.float32, size=0, dynamic_size=True)
 
     @tf.function
     def call_inner(self, state: tf.Tensor):

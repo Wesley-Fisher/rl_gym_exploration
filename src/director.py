@@ -75,7 +75,7 @@ class Director:
 
         self.model.new_episode()
         episode_reward = 0.0
-        custom_reward = 0.0
+        episode_custom_reward = 0.0
 
         for t in tf.range(self.env.max_steps()):
             # Convert state into a batched tensor (batch size = 1)
@@ -97,7 +97,7 @@ class Director:
             r = float(reward)
             episode_reward = episode_reward + float(r)
 
-            custom_reward = custom_reward + float(r) + float(custom_reward)
+            episode_custom_reward = episode_custom_reward + float(r) + float(custom_reward)
 
             if tf.cast(done, tf.bool):
                 break
@@ -105,7 +105,7 @@ class Director:
         # Capture final frame
         self.animator.step(state, action)
 
-        return episode_reward, custom_reward
+        return episode_reward, episode_custom_reward
     
     def scale_state(self, state):
         return self.scaler.transform(state)
