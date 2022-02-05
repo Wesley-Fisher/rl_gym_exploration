@@ -17,13 +17,13 @@ class SimpleActorCriticModel(GymExplorationModel):
     # Heavily based on:
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, alpha=0.01, common=[128], discretization=0, scale=0):
+    def __init__(self, env, alpha=0.01, common=[128], actors=[], critics=0, discretization=0, scale=0):
         super().__init__()
 
         self.common = []
         for c in common:
             self.common.append(layers.Dense(c, activation="relu"))
-        self.critic = layers.Dense(1)
+        
 
         self.discretization = discretization
         self.scale = scale
@@ -32,7 +32,16 @@ class SimpleActorCriticModel(GymExplorationModel):
         else:
             self.act_N = 2 * self.discretization + 1
         
+        self.actor_layers = []
+        for a in actors:
+            self.actor_layers.append(layers.Dense(a, activation="relu"))
         self.actor = layers.Dense(self.act_N)
+
+        
+        self.critic_layers = []
+        for c in critics:
+            self.critic_layers.append(layers.Dense(a, activation="relu"))
+        self.critic = layers.Dense(1)
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=alpha)
         self.huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
@@ -58,8 +67,16 @@ class SimpleActorCriticModel(GymExplorationModel):
         x = state
         for common_layer in self.common:
             x = common_layer(x)
-        action_logits = self.actor(x)
-        value = self.critic(x)
+
+        y = x
+        for actor_layer in self.actor_layers:
+            y = actor_layer(y)
+        action_logits = self.actor(y)
+        
+        z = x
+        for critic_layer in self.critic_layers:
+            z = critic_layer(z)
+        value = self.critic(z)
         return action_logits, value
 
     
