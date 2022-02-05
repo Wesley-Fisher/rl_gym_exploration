@@ -32,7 +32,7 @@ class Director:
         solved = False
         with tqdm.trange(max_episodes) as t:
             for i in t:
-                ep_reward, custom_reward = self.run_training_episode()
+                ep_reward, custom_reward, tracked = self.run_training_episode()
                 episode_reward = int(ep_reward)
                 
                 episodes_reward.append(episode_reward)
@@ -43,6 +43,7 @@ class Director:
             
                 t.set_description(f'Episode {i}')
                 t.set_postfix(
+                    tracked=tracked,
                     custom_reward=custom_reward,
                     running_custom=running_custom,
                     episode_reward=episode_reward,
@@ -64,10 +65,10 @@ class Director:
 
         with tf.GradientTape() as tape:
             episode_reward, custom_reward = self.run_episode()
-            self.model.post_episode_train(tape, self.custom_scale_return)
+            track = self.model.post_episode_train(tape, self.custom_scale_return)
         
         self.animator.end_episode()
-        return float(episode_reward), float(custom_reward)
+        return float(episode_reward), float(custom_reward), float(track)
 
     def run_episode(self):
         state = self.env.get_new_starting_state()

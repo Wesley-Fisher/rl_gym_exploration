@@ -130,6 +130,8 @@ class SimpleActorCriticModel(GymExplorationModel):
         grads = tape.gradient(loss, self.trainable_variables)
         self.optimizer.apply_gradients(zip(grads, self.trainable_variables))
 
+        return float(loss)
+
     def compute_ActorCritic_loss(self,
                      action_probs: tf.Tensor,
                      values: tf.Tensor,
