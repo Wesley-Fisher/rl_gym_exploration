@@ -1,8 +1,12 @@
 import collections
 import tqdm
 import statistics
+import numpy as np
 
 import tensorflow as tf
+
+import sklearn
+import sklearn.preprocessing
 
 class Director:
     # Heavily based on
@@ -13,6 +17,11 @@ class Director:
         self.model = model
         self.animator = animator
         self.custom_reward = custom_reward
+    
+        # https://medium.com/@asteinbach/actor-critic-using-deep-rl-continuous-mountain-car-in-tensorflow-4c1fb2110f7c
+        self.scaler = sklearn.preprocessing.StandardScaler()
+        state_samples = np.array([env.env.observation_space.sample() for x in range(10000)])
+        self.scaler.fit(state_samples)
     
     def train(self, max_episodes):
         # Keep last episodes reward
@@ -65,8 +74,9 @@ class Director:
         for t in tf.range(self.env.max_steps()):
             # Convert state into a batched tensor (batch size = 1)
             state = tf.expand_dims(state, 0)
-        
-            action = self.model(state)
+
+            scaled_state = self.scale_state(state)            
+            action = self.model(scaled_state)
 
             self.animator.step(state, action)
 
@@ -90,3 +100,6 @@ class Director:
         self.animator.step(state, action)
 
         return episode_reward, custom_reward
+    
+    def scale_state(self, state):
+        return self.scaler.transform(state)
