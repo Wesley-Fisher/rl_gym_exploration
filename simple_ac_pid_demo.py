@@ -17,7 +17,7 @@ class SimpleActorCriticModel(GymExplorationModel):
     # Heavily based on:
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, discretization=0, scale=0):
+    def __init__(self, env, alpha=0.01, discretization=0, scale=0):
         super().__init__()
 
         self.common = layers.Dense(128, activation="relu")
@@ -32,7 +32,7 @@ class SimpleActorCriticModel(GymExplorationModel):
         
         self.actor = layers.Dense(self.act_N)
 
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=alpha)
         self.huber_loss = tf.keras.losses.Huber(reduction=tf.keras.losses.Reduction.SUM)
 
         self.gamma = 0.99
