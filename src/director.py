@@ -17,7 +17,8 @@ class Director:
         self.model = model
         self.animator = animator
         self.custom_reward = custom_reward
-    
+        self.custom_scale_return = custom_scale_return
+
         # https://medium.com/@asteinbach/actor-critic-using-deep-rl-continuous-mountain-car-in-tensorflow-4c1fb2110f7c
         self.scaler = sklearn.preprocessing.StandardScaler()
         state_samples = np.array([env.env.observation_space.sample() for x in range(10000)])
@@ -25,7 +26,8 @@ class Director:
     
     def train(self, max_episodes):
         # Keep last episodes reward
-        episodes_reward: collections.deque = collections.deque(maxlen=self.env.min_episodes())
+        episodes_reward: collections.deque = collections.deque(maxlen=25)
+        episodes_custom: collections.deque = collections.deque(maxlen=25)
 
         solved = False
         with tqdm.trange(max_episodes) as t:
@@ -35,10 +37,14 @@ class Director:
                 
                 episodes_reward.append(episode_reward)
                 running_reward = statistics.mean(episodes_reward)
+
+                episodes_custom.append(custom_reward)
+                running_custom = statistics.mean(episodes_custom)
             
                 t.set_description(f'Episode {i}')
                 t.set_postfix(
                     custom_reward=custom_reward,
+                    running_custom=running_custom,
                     episode_reward=episode_reward,
                     running_reward=running_reward)
             
