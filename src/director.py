@@ -12,12 +12,13 @@ class Director:
     # Heavily based on
     # https://github.com/tensorflow/docs/blob/master/site/en/tutorials/reinforcement_learning/actor_critic.ipynb
 
-    def __init__(self, env, model, animator, custom_reward=lambda s: 0.0, custom_scale_return=lambda returns: returns):
+    def __init__(self, env, model, animator, custom_reward=lambda s: 0.0, custom_scale_return=lambda returns: returns, scale_state=True):
         self.env = env
         self.model = model
         self.animator = animator
         self.custom_reward = custom_reward
         self.custom_scale_return = custom_scale_return
+        self.scale_state = scale_state
 
         # https://medium.com/@asteinbach/actor-critic-using-deep-rl-continuous-mountain-car-in-tensorflow-4c1fb2110f7c
         self.scaler = sklearn.preprocessing.StandardScaler()
@@ -82,8 +83,10 @@ class Director:
             # Convert state into a batched tensor (batch size = 1)
             state = tf.expand_dims(state, 0)
 
-            scaled_state = self.scale_state(state)            
-            action = self.model(scaled_state)
+            use_state = state
+            if self.scale_state:
+                use_state = self.scaler.transform(state)
+            action = self.model(use_state)
 
             self.animator.step(state, action)
 
