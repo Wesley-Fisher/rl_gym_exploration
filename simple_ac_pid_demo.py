@@ -192,26 +192,29 @@ class PIDModel(GymExplorationModel):
 
 print("CartPole-v0 Actor-Critic Demo")
 env = Environment('CartPole-v0')
-model = SimpleActorCriticModel(env, alpha=0.001, common=[64,64])
+scale_return = lambda returns: returns / 1.0
+model = SimpleActorCriticModel(env, alpha=0.001, common=[64,64], actors=[8], critics=[4])
 animator = Animator('Demo', env, model, '100', 20)
-director = Director(env, model, animator)
+director = Director(env, model, animator, custom_scale_return=scale_return, scale_state=False)
 director.train(1000)
 
 
 print("MountainCar-v0 Actor-Critic Demo")
 env = Environment('MountainCar-v0')
-montaincar_reward = lambda state: (tf.math.abs(state[1]*14)**1) * 1.5 + state[0]
-scale_return = lambda returns: returns / 200.0
-model = SimpleActorCriticModel(env, alpha=0.0001, common=[256,128, 32], critics=[16,4])
+montaincar_reward = lambda state: (tf.math.abs(state[1]*14)**1 + state[0]) * 10
+scale_return = lambda returns: returns / 10.0
+model = SimpleActorCriticModel(env, alpha=0.001, common=[256,128, 32], critics=[16,4])
 animator = Animator('Demo', env, model, '100', 20)
-director = Director(env, model, animator, custom_reward=montaincar_reward, custom_scale_return=scale_return)
+director = Director(env, model, animator, custom_reward=montaincar_reward, custom_scale_return=scale_return, scale_state=False)
 director.train(1000)
+
 
 print("Acrobot-v1 Actor-Critic Demo")
 env = Environment('Acrobot-v1')
-model = SimpleActorCriticModel(env)
+acrobot_reward = lambda state: -state[1] * 10
+model = SimpleActorCriticModel(env, common=[64, 64])
 animator = Animator('Demo', env, model, '100', 20)
-director = Director(env, model, animator)
+director = Director(env, model, animator, custom_reward=acrobot_reward)
 director.train(100)
 
 
