@@ -21,7 +21,7 @@ class GymExplorationModel(tf.keras.Model):
         # If relevant, handle data from taking the action
         return
     
-    def post_episode_train(self, tape):
+    def post_episode_train(self, tape, scale_return=lambda returns: returns):
         # If relevant do training
         # Tensorflow tf.GradientTape available
         return
