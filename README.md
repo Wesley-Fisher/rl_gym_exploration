@@ -77,7 +77,7 @@ A base class to act as an agent in the environment. Subclasses `tf.keras.Model`.
 `post_episode_train(tape, scale_return)`
 
 * tape: a `tf.GradientTape` object. If a value is calculated in the function, then `tape.gradient(<variable>, self.trainable_variables)` can be called to calculate the gradients of the value with respect to model variables
-* scale_return: custom `lamda` function to scale returns, provided by a `Director`. Takes a set of returns as a Tensor as an object, and returns a scaled version
+* scale_return: custom `lambda` function to scale returns, provided by a `Director`. Takes a set of returns as a Tensor as an object, and returns a scaled version
 * Note: intended as a function to trigger any machine learning abilities of a model after each episode is finished
 
 
